@@ -46,15 +46,15 @@ export default function Dashboard() {
     return <div className="text-center py-20 text-gray-500">Failed to load dashboard</div>;
   }
 
-  const usagePercent = stats.tenant.messageQuota > 0
-    ? Math.round((stats.tenant.messagesUsed / stats.tenant.messageQuota) * 100)
+  const usagePercent = (stats.tenant.messageQuota ?? 0) > 0
+    ? Math.round(((stats.tenant.messagesUsed ?? 0) / stats.tenant.messageQuota!) * 100)
     : 0;
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500">{stats.tenant.name} &middot; {stats.tenant.plan.toUpperCase()} plan</p>
+        <p className="text-gray-500">{stats.tenant.name ?? "Platform"} &middot; {(stats.tenant.plan ?? "admin").toUpperCase()} plan</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -76,7 +76,7 @@ export default function Dashboard() {
             </div>
           </div>
           <span className="text-sm font-medium text-gray-600">
-            {stats.tenant.messagesUsed.toLocaleString()} / {stats.tenant.messageQuota.toLocaleString()}
+            {(stats.tenant.messagesUsed ?? 0).toLocaleString()} / {(stats.tenant.messageQuota ?? 0).toLocaleString()}
           </span>
         </div>
         <p className="text-xs text-gray-400 mt-2">{usagePercent}% used</p>

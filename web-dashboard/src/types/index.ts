@@ -114,10 +114,10 @@ export interface PaginatedResponse<T> {
 
 export interface DashboardStats {
   tenant: {
-    name: string;
-    plan: string;
-    messagesUsed: number;
-    messageQuota: number;
+    name?: string;
+    plan?: string;
+    messagesUsed?: number;
+    messageQuota?: number;
   };
   campaigns: { total: number; active: number };
   contacts: { total: number };
