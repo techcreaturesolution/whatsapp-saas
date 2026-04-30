@@ -88,6 +88,10 @@ export async function confirmPayment(tenantId: string, data: {
   const notes = order.notes as Record<string, string> | undefined;
   const plan = notes?.plan as PlanType | undefined;
 
+  if (notes?.tenantId !== tenantId) {
+    throw new AppError("Order does not belong to this tenant", 403);
+  }
+
   if (!plan || !PLAN_CONFIG[plan]) {
     throw new AppError("Invalid plan in order", 400);
   }

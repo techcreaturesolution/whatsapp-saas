@@ -1,8 +1,24 @@
+import crypto from "crypto";
 import { Request, Response } from "express";
 import { env } from "../config/env";
 import { WhatsAppAccount } from "../models/WhatsAppAccount";
 import { handleIncomingMessage, handleStatusUpdate } from "../services/webhookService";
 import { logger } from "../config/logger";
+
+function verifySignature(req: Request): boolean {
+  const signature = req.headers["x-hub-signature-256"] as string | undefined;
+  if (!signature || !env.metaAppSecret) return false;
+
+  const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
+  if (!rawBody) return false;
+
+  const expected = "sha256=" + crypto
+    .createHmac("sha256", env.metaAppSecret)
+    .update(rawBody)
+    .digest("hex");
+
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
 
 export async function verifyWebhook(req: Request, res: Response) {
   const mode = req.query["hub.mode"];
@@ -20,6 +36,12 @@ export async function verifyWebhook(req: Request, res: Response) {
 
 export async function receiveWebhook(req: Request, res: Response) {
   try {
+    if (env.metaAppSecret && !verifySignature(req)) {
+      logger.warn("Webhook signature verification failed");
+      res.sendStatus(403);
+      return;
+    }
+
     const body = req.body;
 
     if (body.object !== "whatsapp_business_account") {

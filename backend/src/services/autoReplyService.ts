@@ -118,6 +118,9 @@ function matchRule(rule: IAutoReplyRule, text: string): boolean {
       const [endH, endM] = endStr.split(":").map(Number);
       const startMinutes = startH * 60 + startM;
       const endMinutes = endH * 60 + endM;
+      if (endMinutes < startMinutes) {
+        return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+      }
       return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
     }
     default:

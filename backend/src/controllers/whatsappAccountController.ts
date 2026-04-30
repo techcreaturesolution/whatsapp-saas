@@ -28,7 +28,7 @@ export async function addAccount(req: TenantRequest, res: Response, next: NextFu
 
 export async function getAccounts(req: TenantRequest, res: Response, next: NextFunction) {
   try {
-    const accounts = await WhatsAppAccount.find({ tenantId: req.tenantId });
+    const accounts = await WhatsAppAccount.find({ tenantId: req.tenantId }).select("-accessToken");
     res.json({ accounts });
   } catch (error) {
     next(error);
@@ -41,7 +41,7 @@ export async function updateAccount(req: TenantRequest, res: Response, next: Nex
     const account = await WhatsAppAccount.findOneAndUpdate(
       { _id: req.params.id, tenantId: req.tenantId },
       { $set: data },
-      { new: true }
+      { new: true, projection: { accessToken: 0 } }
     );
     if (!account) throw new AppError("Account not found", 404);
     res.json(account);

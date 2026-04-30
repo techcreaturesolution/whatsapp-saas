@@ -31,6 +31,12 @@ const apiLimiter = rateLimit({
 });
 app.use("/api/", apiLimiter);
 
+app.use("/api/webhook", express.json({
+  limit: "10mb",
+  verify: (req, _res, buf) => {
+    (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+  },
+}));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 

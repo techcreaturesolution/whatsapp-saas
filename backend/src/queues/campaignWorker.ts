@@ -2,6 +2,7 @@ import { Worker, Job } from "bullmq";
 import { redisConnection } from "../config/redis";
 import { Message } from "../models/Message";
 import { Campaign } from "../models/Campaign";
+import { Tenant } from "../models/Tenant";
 import { sendTemplateMessage } from "../services/whatsappApiService";
 import { logger } from "../config/logger";
 
@@ -71,6 +72,25 @@ export function startCampaignWorker() {
       }
 
       await message.save();
+
+      const statField = result.success ? "stats.sent" : "stats.failed";
+      await Campaign.findByIdAndUpdate(campaignId, { $inc: { [statField]: 1 } });
+
+      if (result.success) {
+        await Tenant.findByIdAndUpdate(job.data.tenantId, {
+          $inc: { messagesUsed: 1 },
+        });
+      }
+
+      const updatedCampaign = await Campaign.findById(campaignId);
+      if (updatedCampaign) {
+        const totalProcessed = updatedCampaign.stats.sent + updatedCampaign.stats.failed;
+        if (totalProcessed >= updatedCampaign.stats.total && updatedCampaign.status !== "completed") {
+          updatedCampaign.status = "completed";
+          updatedCampaign.completedAt = new Date();
+          await updatedCampaign.save();
+        }
+      }
     },
     {
       connection: redisConnection,

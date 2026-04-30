@@ -3,7 +3,7 @@ import { Contact } from "../models/Contact";
 import { Conversation } from "../models/Conversation";
 import { Message } from "../models/Message";
 import { Campaign } from "../models/Campaign";
-import { Tenant } from "../models/Tenant";
+
 import { processAutoReply } from "./autoReplyService";
 import { logger } from "../config/logger";
 
@@ -116,27 +116,11 @@ export async function handleStatusUpdate(statusUpdate: WebhookStatus) {
 
     await message.save();
 
-    if (message.campaignId) {
+    if (message.campaignId && (statusUpdate.status === "delivered" || statusUpdate.status === "read")) {
       const statField = `stats.${statusUpdate.status}`;
       await Campaign.findByIdAndUpdate(message.campaignId, {
         $inc: { [statField]: 1 },
       });
-
-      if (statusUpdate.status === "sent") {
-        await Tenant.findByIdAndUpdate(message.tenantId, {
-          $inc: { messagesUsed: 1 },
-        });
-      }
-
-      const campaign = await Campaign.findById(message.campaignId);
-      if (campaign) {
-        const totalProcessed = campaign.stats.sent + campaign.stats.failed;
-        if (totalProcessed >= campaign.stats.total && campaign.status !== "completed") {
-          campaign.status = "completed";
-          campaign.completedAt = new Date();
-          await campaign.save();
-        }
-      }
     }
   }
 }
