@@ -9,6 +9,7 @@ import { Campaign } from "../models/Campaign";
 import { Message } from "../models/Message";
 import { Conversation } from "../models/Conversation";
 import { Workflow } from "../models/Workflow";
+import { WorkflowLog } from "../models/WorkflowLog";
 import { Payment } from "../models/Payment";
 import { AppError } from "../middleware/errorHandler";
 
@@ -137,6 +138,7 @@ export async function deleteTenant(req: AuthRequest, res: Response, next: NextFu
       Message.deleteMany({ tenantId: tenant._id }),
       Conversation.deleteMany({ tenantId: tenant._id }),
       Workflow.deleteMany({ tenantId: tenant._id }),
+      WorkflowLog.deleteMany({ tenantId: tenant._id }),
       Subscription.deleteMany({ tenantId: tenant._id }),
       Payment.deleteMany({ tenantId: tenant._id }),
     ]);

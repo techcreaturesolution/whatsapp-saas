@@ -63,8 +63,9 @@ export async function getRevenueDashboard() {
           count: { $sum: 1 },
         },
       },
-      { $sort: { "_id.year": 1, "_id.month": 1 } },
+      { $sort: { "_id.year": -1, "_id.month": -1 } },
       { $limit: 12 },
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]),
 
     Tenant.countDocuments({ status: "active" }),

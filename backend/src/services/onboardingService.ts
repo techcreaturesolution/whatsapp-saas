@@ -78,6 +78,11 @@ export async function connectMeta(tenantId: string, data: {
   const tenant = await Tenant.findById(tenantId);
   if (!tenant) throw new AppError("Tenant not found", 404);
 
+  const currentIdx = STEP_ORDER.indexOf(tenant.onboardingStep);
+  if (currentIdx < STEP_ORDER.indexOf("payment_done")) {
+    throw new AppError("Complete payment before connecting Meta", 400);
+  }
+
   tenant.metaConfig = {
     appId: data.appId,
     appSecret: encrypt(data.appSecret),
@@ -99,6 +104,11 @@ export async function verifyPhoneNumber(tenantId: string, data: {
 }) {
   const tenant = await Tenant.findById(tenantId);
   if (!tenant) throw new AppError("Tenant not found", 404);
+
+  const currentIdx = STEP_ORDER.indexOf(tenant.onboardingStep);
+  if (currentIdx < STEP_ORDER.indexOf("meta_connected")) {
+    throw new AppError("Connect Meta before verifying phone number", 400);
+  }
 
   const account = new WhatsAppAccount({
     tenantId,

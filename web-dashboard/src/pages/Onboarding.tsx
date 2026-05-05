@@ -14,10 +14,10 @@ const STEP_INFO: Record<string, { title: string; description: string }> = {
 };
 
 const PLANS = [
-  { id: "free", name: "Free", price: 0, messages: 100, features: ["100 messages/month", "1 WhatsApp number", "Basic analytics"] },
-  { id: "starter", name: "Starter", price: 999, messages: 5000, features: ["5,000 messages/month", "2 WhatsApp numbers", "Auto-reply rules", "Campaign tools"] },
-  { id: "pro", name: "Pro", price: 2999, messages: 25000, features: ["25,000 messages/month", "5 WhatsApp numbers", "Workflow automation", "Priority support"] },
-  { id: "enterprise", name: "Enterprise", price: 9999, messages: 100000, features: ["100,000 messages/month", "Unlimited numbers", "Custom integrations", "Dedicated support"] },
+  { id: "free", name: "Free", price: 0, messages: 1000, features: ["1,000 messages/month", "1 WhatsApp number", "Basic analytics"] },
+  { id: "starter", name: "Starter", price: 999, messages: 10000, features: ["10,000 messages/month", "2 WhatsApp numbers", "Auto-reply rules", "Campaign tools"] },
+  { id: "pro", name: "Pro", price: 2999, messages: 50000, features: ["50,000 messages/month", "5 WhatsApp numbers", "Workflow automation", "Priority support"] },
+  { id: "enterprise", name: "Enterprise", price: 9999, messages: 200000, features: ["200,000 messages/month", "Unlimited numbers", "Custom integrations", "Dedicated support"] },
 ];
 
 export default function Onboarding() {
