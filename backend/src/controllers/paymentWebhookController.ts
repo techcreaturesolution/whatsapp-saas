@@ -6,13 +6,17 @@ export async function handleRazorpayWebhook(req: Request, res: Response) {
   try {
     const signature = req.headers["x-razorpay-signature"] as string;
 
-    if (signature) {
-      const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
-      if (rawBody && !verifyRazorpayWebhook(rawBody.toString(), signature)) {
-        logger.warn("Razorpay webhook signature verification failed");
-        res.sendStatus(400);
-        return;
-      }
+    if (!signature) {
+      logger.warn("Razorpay webhook missing signature header");
+      res.sendStatus(400);
+      return;
+    }
+
+    const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
+    if (!rawBody || !verifyRazorpayWebhook(rawBody.toString(), signature)) {
+      logger.warn("Razorpay webhook signature verification failed");
+      res.sendStatus(400);
+      return;
     }
 
     const { event, payload } = req.body;

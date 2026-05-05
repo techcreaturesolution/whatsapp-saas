@@ -40,6 +40,13 @@ export function decrypt(encryptedText: string): string {
   return decrypted;
 }
 
+export function getDecryptedToken(account: { accessToken: string; accessTokenEncrypted?: boolean }): string {
+  if (account.accessTokenEncrypted) {
+    return decrypt(account.accessToken);
+  }
+  return account.accessToken;
+}
+
 export function generateInvoiceNumber(tenantId: string): string {
   const date = new Date();
   const year = date.getFullYear();

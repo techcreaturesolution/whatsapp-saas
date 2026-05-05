@@ -11,6 +11,13 @@ export interface ISLAMetrics {
   slaBreached: boolean;
 }
 
+const PRIORITY_WEIGHTS: Record<ConversationPriority, number> = {
+  low: 1,
+  normal: 2,
+  high: 3,
+  urgent: 4,
+};
+
 export interface IConversation extends Document {
   tenantId: mongoose.Types.ObjectId;
   waAccountId: mongoose.Types.ObjectId;
@@ -21,6 +28,7 @@ export interface IConversation extends Document {
   assignedAgentId: mongoose.Types.ObjectId | null;
   status: "open" | "closed" | "pending" | "snoozed";
   priority: ConversationPriority;
+  priorityWeight: number;
   sla: ISLAMetrics;
   tags: string[];
   notes: string;
@@ -55,6 +63,7 @@ const conversationSchema = new Schema<IConversation>(
       enum: ["low", "normal", "high", "urgent"],
       default: "normal",
     },
+    priorityWeight: { type: Number, default: 2 },
     sla: { type: slaMetricsSchema, default: () => ({}) },
     tags: [{ type: String, trim: true }],
     notes: { type: String, default: "" },
@@ -62,9 +71,16 @@ const conversationSchema = new Schema<IConversation>(
   { timestamps: true }
 );
 
+conversationSchema.pre("save", function (next) {
+  if (this.isModified("priority")) {
+    this.priorityWeight = PRIORITY_WEIGHTS[this.priority] || 2;
+  }
+  next();
+});
+
 conversationSchema.index({ tenantId: 1, waAccountId: 1, contactId: 1 }, { unique: true });
 conversationSchema.index({ tenantId: 1, lastMessageAt: -1 });
 conversationSchema.index({ tenantId: 1, assignedAgentId: 1 });
-conversationSchema.index({ tenantId: 1, priority: 1 });
+conversationSchema.index({ tenantId: 1, priorityWeight: -1 });
 
 export const Conversation = mongoose.model<IConversation>("Conversation", conversationSchema);

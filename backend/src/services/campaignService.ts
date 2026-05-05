@@ -4,6 +4,7 @@ import { Message } from "../models/Message";
 import { WhatsAppAccount } from "../models/WhatsAppAccount";
 import { Tenant } from "../models/Tenant";
 import { AppError } from "../middleware/errorHandler";
+import { getDecryptedToken } from "../utils/crypto";
 import { campaignQueue } from "../queues/campaignQueue";
 
 export async function createCampaign(tenantId: string, data: {
@@ -100,7 +101,7 @@ export async function startCampaign(tenantId: string, campaignId: string) {
     await campaignQueue.add("send-message", {
       messageId: msg._id.toString(),
       phoneNumberId: account.phoneNumberId,
-      accessToken: account.accessToken,
+      accessToken: getDecryptedToken(account),
       to: contact.phone,
       templateName: campaign.templateName,
       languageCode: campaign.templateLanguage,

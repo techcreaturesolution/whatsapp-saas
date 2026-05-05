@@ -4,6 +4,7 @@ import { Contact } from "../models/Contact";
 import { WhatsAppAccount } from "../models/WhatsAppAccount";
 import { Conversation } from "../models/Conversation";
 import { sendTextMessage, sendTemplateMessage } from "./whatsappApiService";
+import { getDecryptedToken } from "../utils/crypto";
 import { AppError } from "../middleware/errorHandler";
 import { logger } from "../config/logger";
 import type { IWorkflowAction, TriggerType } from "../models/Workflow";
@@ -279,7 +280,7 @@ async function executeActionByType(
       const text = config.message as string;
       const result = await sendTextMessage({
         phoneNumberId: account.phoneNumberId,
-        accessToken: account.accessToken,
+        accessToken: getDecryptedToken(account),
         to: contactPhone,
         text,
       });
@@ -296,7 +297,7 @@ async function executeActionByType(
 
       const result = await sendTemplateMessage({
         phoneNumberId: account.phoneNumberId,
-        accessToken: account.accessToken,
+        accessToken: getDecryptedToken(account),
         to: contactPhone,
         templateName: config.templateName as string,
         languageCode: (config.languageCode as string) || "en",

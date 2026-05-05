@@ -5,6 +5,7 @@ import { Contact } from "../models/Contact";
 import { WhatsAppAccount } from "../models/WhatsAppAccount";
 import { AppError } from "../middleware/errorHandler";
 import { sendTextMessage } from "./whatsappApiService";
+import { getDecryptedToken } from "../utils/crypto";
 import type { ConversationPriority } from "../models/Conversation";
 
 export async function getConversations(tenantId: string, query: {
@@ -29,7 +30,7 @@ export async function getConversations(tenantId: string, query: {
 
   const [conversations, total] = await Promise.all([
     Conversation.find(filter)
-      .sort({ priority: -1, lastMessageAt: -1 })
+      .sort({ priorityWeight: -1, lastMessageAt: -1 })
       .skip(skip)
       .limit(limit)
       .populate("contactId", "name phone tags")
@@ -77,7 +78,7 @@ export async function sendReply(tenantId: string, conversationId: string, text: 
 
   const result = await sendTextMessage({
     phoneNumberId: account.phoneNumberId,
-    accessToken: account.accessToken,
+    accessToken: getDecryptedToken(account),
     to: contact.phone,
     text,
   });
@@ -146,6 +147,13 @@ export async function closeConversation(tenantId: string, conversationId: string
   return conversation;
 }
 
+const PRIORITY_WEIGHTS: Record<ConversationPriority, number> = {
+  low: 1,
+  normal: 2,
+  high: 3,
+  urgent: 4,
+};
+
 export async function updateConversationPriority(
   tenantId: string,
   conversationId: string,
@@ -153,7 +161,7 @@ export async function updateConversationPriority(
 ) {
   const conversation = await Conversation.findOneAndUpdate(
     { _id: conversationId, tenantId },
-    { priority },
+    { priority, priorityWeight: PRIORITY_WEIGHTS[priority] || 2 },
     { new: true }
   );
   if (!conversation) throw new AppError("Conversation not found", 404);
