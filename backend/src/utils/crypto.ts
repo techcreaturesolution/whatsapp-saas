@@ -4,9 +4,13 @@ import { env } from "../config/env";
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
 
+let _cachedKey: Buffer | null = null;
 function getEncryptionKey(): Buffer {
-  const secret = env.encryptionKey || env.jwtSecret;
-  return crypto.scryptSync(secret, "whatsapp-saas-salt", 32);
+  if (!_cachedKey) {
+    const secret = env.encryptionKey || env.jwtSecret;
+    _cachedKey = crypto.scryptSync(secret, "whatsapp-saas-salt", 32);
+  }
+  return _cachedKey;
 }
 
 export function encrypt(text: string): string {

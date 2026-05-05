@@ -78,8 +78,9 @@ export async function closeConversation(req: TenantRequest, res: Response, next:
 export async function updatePriority(req: TenantRequest, res: Response, next: NextFunction) {
   try {
     const { priority } = req.body;
-    if (!priority) {
-      res.status(400).json({ error: "Priority is required" });
+    const validPriorities = ["low", "normal", "high", "urgent"];
+    if (!priority || !validPriorities.includes(priority)) {
+      res.status(400).json({ error: "Priority must be one of: low, normal, high, urgent" });
       return;
     }
     const conversation = await chatService.updateConversationPriority(req.tenantId!, req.params.id, priority);
