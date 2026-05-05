@@ -167,14 +167,16 @@ export async function addTeamMember(tenantId: string, data: {
 }
 
 export async function getTeamMembers(tenantId: string) {
+  if (!tenantId) throw new AppError("Tenant ID is required", 400);
   const members = await User.find({ tenantId }).select("-password -otp -otpExpiresAt");
   return { members };
 }
 
 export async function removeTeamMember(tenantId: string, userId: string) {
+  if (!tenantId) throw new AppError("Tenant ID is required", 400);
   const user = await User.findOne({ _id: userId, tenantId });
   if (!user) throw new AppError("User not found", 404);
-  if (user.role === "tenant_admin") throw new AppError("Cannot remove tenant admin", 400);
+  if (user.role === "tenant_admin" || user.role === "super_admin") throw new AppError("Cannot remove this user", 400);
   await User.findByIdAndDelete(userId);
   return { message: "Team member removed" };
 }

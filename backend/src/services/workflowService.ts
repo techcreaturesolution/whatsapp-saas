@@ -284,6 +284,7 @@ function isUrlAllowed(url: string): boolean {
     if (hostname.endsWith(".local") || hostname.endsWith(".internal")) return false;
 
     if (hostname.includes(":")) {
+      if (hostname === "::" || hostname === "0:0:0:0:0:0:0:0") return false;
       if (hostname.startsWith("fd") || hostname.startsWith("fc")) return false;
       if (hostname.startsWith("fe80")) return false;
       if (hostname.includes("::ffff:")) {
@@ -405,6 +406,7 @@ async function executeActionByType(
           method,
           headers: { "Content-Type": "application/json", ...headers },
           body: body ? JSON.stringify({ ...body, triggerData, tenantId }) : undefined,
+          redirect: "error",
         });
 
         const responseData = await response.text();
