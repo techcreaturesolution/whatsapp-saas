@@ -53,6 +53,13 @@ export function startCampaignWorker() {
       const account = await WhatsAppAccount.findById(waAccountId);
       if (!account) {
         logger.error(`WhatsApp account ${waAccountId} not found for message ${messageId}`);
+        const msg = await Message.findById(messageId);
+        if (msg) {
+          msg.status = "failed";
+          msg.errorMessage = "WhatsApp account not found";
+          await msg.save();
+        }
+        await Campaign.findByIdAndUpdate(campaignId, { $inc: { "stats.failed": 1 } });
         return;
       }
 

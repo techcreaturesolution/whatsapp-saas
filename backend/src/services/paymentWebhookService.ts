@@ -89,12 +89,14 @@ export async function handlePaymentCaptured(payload: RazorpayWebhookPayload) {
     const updateFields: Record<string, unknown> = {
       plan,
       messageQuota: planConfig.messageQuota,
-      status: "active",
     };
     const STEP_ORDER = ["registered", "plan_selected", "payment_done", "meta_connected", "phone_verified", "completed"];
     const currentIdx = STEP_ORDER.indexOf(tenant.onboardingStep);
     if (currentIdx < STEP_ORDER.indexOf("payment_done")) {
       updateFields.onboardingStep = "payment_done";
+    }
+    if (tenant.onboardingStep === "completed") {
+      updateFields.status = "active";
     }
     await Tenant.findByIdAndUpdate(tenantId, updateFields);
   }

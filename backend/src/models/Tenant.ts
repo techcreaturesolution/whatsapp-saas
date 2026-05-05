@@ -69,6 +69,16 @@ const tenantSchema = new Schema<ITenant>(
   { timestamps: true }
 );
 
+tenantSchema.set("toJSON", {
+  transform(_doc, ret) {
+    if (ret.metaConfig) {
+      if (ret.metaConfig.appSecret) ret.metaConfig.appSecret = "[REDACTED]";
+      if (ret.metaConfig.systemUserToken) ret.metaConfig.systemUserToken = "[REDACTED]";
+    }
+    return ret;
+  },
+});
+
 tenantSchema.index({ status: 1 });
 tenantSchema.index({ plan: 1 });
 

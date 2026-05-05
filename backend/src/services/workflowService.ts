@@ -248,6 +248,8 @@ function evaluateConditions(
         return Number(fieldValue) < Number(condValue);
       case "regex":
         try {
+          if (condValue.length > 200) return false;
+          if (/(\+\+|\*\+|\+\*|\*\*)/.test(condValue)) return false;
           return new RegExp(condValue, "i").test(fieldValue);
         } catch {
           return false;
