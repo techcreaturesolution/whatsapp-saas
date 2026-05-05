@@ -260,6 +260,31 @@ function evaluateConditions(
   });
 }
 
+function isUrlAllowed(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (!["http:", "https:"].includes(parsed.protocol)) return false;
+
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return false;
+    if (hostname === "0.0.0.0") return false;
+    if (hostname.endsWith(".local") || hostname.endsWith(".internal")) return false;
+
+    const parts = hostname.split(".").map(Number);
+    if (parts.length === 4 && parts.every(p => !isNaN(p))) {
+      if (parts[0] === 10) return false;
+      if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return false;
+      if (parts[0] === 192 && parts[1] === 168) return false;
+      if (parts[0] === 169 && parts[1] === 254) return false;
+      if (parts[0] === 127) return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function executeActionByType(
   action: IWorkflowAction,
   triggerData: Record<string, unknown>,
@@ -345,6 +370,9 @@ async function executeActionByType(
 
     case "call_api": {
       const url = config.url as string;
+      if (!isUrlAllowed(url)) {
+        return { skipped: true, reason: "URL blocked: internal/private addresses not allowed" };
+      }
       const method = (config.method as string) || "POST";
       const headers = (config.headers as Record<string, string>) || {};
       const body = config.body as Record<string, unknown> | undefined;
@@ -403,6 +431,7 @@ export async function findAndExecuteWorkflows(
 
     if (triggerType === "keyword") {
       const keyword = (triggerConfig.keyword as string || "").toLowerCase();
+      if (!keyword) continue;
       const incomingText = (triggerData.incomingText as string || "").toLowerCase();
       if (!incomingText.includes(keyword)) continue;
     }

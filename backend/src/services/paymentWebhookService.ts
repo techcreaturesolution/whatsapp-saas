@@ -15,10 +15,11 @@ export function verifyRazorpayWebhook(body: string, signature: string): boolean 
     .update(body)
     .digest("hex");
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+  const sigBuf = Buffer.from(signature);
+  const expectedBuf = Buffer.from(expectedSignature);
+  if (sigBuf.length !== expectedBuf.length) return false;
+
+  return crypto.timingSafeEqual(sigBuf, expectedBuf);
 }
 
 interface RazorpayWebhookPayload {

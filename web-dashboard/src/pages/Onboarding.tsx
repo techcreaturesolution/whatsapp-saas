@@ -103,7 +103,7 @@ export default function Onboarding() {
         <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
         <h1 className="text-2xl font-bold mb-2">Setup Complete!</h1>
         <p className="text-gray-500 mb-6">Your WhatsApp Business account is ready to use.</p>
-        <a href="/dashboard" className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 inline-block">Go to Dashboard</a>
+        <a href="/" className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 inline-block">Go to Dashboard</a>
       </div>
     );
   }

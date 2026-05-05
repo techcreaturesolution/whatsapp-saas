@@ -22,9 +22,10 @@ export async function listTenants(req: AuthRequest, res: Response, next: NextFun
     if (req.query.status) filter.status = req.query.status;
     if (req.query.plan) filter.plan = req.query.plan;
     if (req.query.search) {
+      const escaped = (req.query.search as string).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       filter.$or = [
-        { name: { $regex: req.query.search, $options: "i" } },
-        { slug: { $regex: req.query.search, $options: "i" } },
+        { name: { $regex: escaped, $options: "i" } },
+        { slug: { $regex: escaped, $options: "i" } },
       ];
     }
 
