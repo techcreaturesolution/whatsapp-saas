@@ -1,3 +1,4 @@
+import dns from "dns/promises";
 import { Workflow, IWorkflow } from "../models/Workflow";
 import { WorkflowLog } from "../models/WorkflowLog";
 import { Contact } from "../models/Contact";
@@ -249,8 +250,9 @@ function evaluateConditions(
       case "regex":
         try {
           if (condValue.length > 200) return false;
-          if (/(\+\+|\*\+|\+\*|\*\*)/.test(condValue)) return false;
-          return new RegExp(condValue, "i").test(fieldValue);
+          if (isSuspiciousRegex(condValue)) return false;
+          const safeInput = fieldValue.substring(0, 1000);
+          return new RegExp(condValue, "i").test(safeInput);
         } catch {
           return false;
         }
@@ -260,6 +262,14 @@ function evaluateConditions(
         return false;
     }
   });
+}
+
+function isSuspiciousRegex(pattern: string): boolean {
+  if (/(\+\+|\*\+|\+\*|\*\*)/.test(pattern)) return true;
+  if (/\([^)]*[+*][^)]*\)[+*]/.test(pattern)) return true;
+  if (/\([^)]*\|[^)]*\)[+*]/.test(pattern)) return true;
+  if (/\[[^\]]*\][+*].*\[[^\]]*\][+*]/.test(pattern)) return true;
+  return false;
 }
 
 function isIpv4Public(ip: string): boolean {
@@ -273,7 +283,7 @@ function isIpv4Public(ip: string): boolean {
   return true;
 }
 
-function isUrlAllowed(url: string): boolean {
+async function isUrlAllowed(url: string): Promise<boolean> {
   try {
     const parsed = new URL(url);
     if (!["http:", "https:"].includes(parsed.protocol)) return false;
@@ -281,10 +291,10 @@ function isUrlAllowed(url: string): boolean {
     const hostname = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
     if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return false;
     if (hostname === "0.0.0.0") return false;
+    if (hostname === "::" || hostname === "0:0:0:0:0:0:0:0") return false;
     if (hostname.endsWith(".local") || hostname.endsWith(".internal")) return false;
 
     if (hostname.includes(":")) {
-      if (hostname === "::" || hostname === "0:0:0:0:0:0:0:0") return false;
       if (hostname.startsWith("fd") || hostname.startsWith("fc")) return false;
       if (hostname.startsWith("fe80")) return false;
       if (hostname.includes("::ffff:")) {
@@ -295,6 +305,16 @@ function isUrlAllowed(url: string): boolean {
     }
 
     if (!isIpv4Public(hostname)) return false;
+
+    // Resolve domain to IP and validate resolved addresses
+    try {
+      const addresses = await dns.resolve4(hostname);
+      for (const addr of addresses) {
+        if (!isIpv4Public(addr)) return false;
+      }
+    } catch {
+      // DNS resolution failed or hostname is already an IP — allow if it passed prior checks
+    }
 
     return true;
   } catch {
@@ -394,7 +414,7 @@ async function executeActionByType(
 
     case "call_api": {
       const url = config.url as string;
-      if (!isUrlAllowed(url)) {
+      if (!(await isUrlAllowed(url))) {
         return { skipped: true, reason: "URL blocked: internal/private addresses not allowed" };
       }
       const method = (config.method as string) || "POST";
