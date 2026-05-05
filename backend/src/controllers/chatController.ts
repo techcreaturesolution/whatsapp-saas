@@ -65,3 +65,40 @@ export async function assignAgent(req: TenantRequest, res: Response, next: NextF
     next(error);
   }
 }
+
+export async function closeConversation(req: TenantRequest, res: Response, next: NextFunction) {
+  try {
+    const conversation = await chatService.closeConversation(req.tenantId!, req.params.id);
+    res.json(conversation);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updatePriority(req: TenantRequest, res: Response, next: NextFunction) {
+  try {
+    const { priority } = req.body;
+    if (!priority) {
+      res.status(400).json({ error: "Priority is required" });
+      return;
+    }
+    const conversation = await chatService.updateConversationPriority(req.tenantId!, req.params.id, priority);
+    res.json(conversation);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function transferConversation(req: TenantRequest, res: Response, next: NextFunction) {
+  try {
+    const { newAgentId, note } = req.body;
+    if (!newAgentId) {
+      res.status(400).json({ error: "New agent ID is required" });
+      return;
+    }
+    const conversation = await chatService.transferConversation(req.tenantId!, req.params.id, newAgentId, note);
+    res.json(conversation);
+  } catch (error) {
+    next(error);
+  }
+}

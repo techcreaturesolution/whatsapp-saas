@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import { Conversation } from "../models/Conversation";
 import { Message } from "../models/Message";
 import { Contact } from "../models/Contact";
 import { WhatsAppAccount } from "../models/WhatsAppAccount";
 import { AppError } from "../middleware/errorHandler";
 import { sendTextMessage } from "./whatsappApiService";
+import type { ConversationPriority } from "../models/Conversation";
 
 export async function getConversations(tenantId: string, query: {
   page?: number;
@@ -11,6 +13,8 @@ export async function getConversations(tenantId: string, query: {
   waAccountId?: string;
   status?: string;
   unreadOnly?: boolean;
+  priority?: string;
+  assignedAgentId?: string;
 }) {
   const page = query.page || 1;
   const limit = query.limit || 30;
@@ -20,10 +24,12 @@ export async function getConversations(tenantId: string, query: {
   if (query.waAccountId) filter.waAccountId = query.waAccountId;
   if (query.status) filter.status = query.status;
   if (query.unreadOnly) filter.unreadCount = { $gt: 0 };
+  if (query.priority) filter.priority = query.priority;
+  if (query.assignedAgentId) filter.assignedAgentId = query.assignedAgentId;
 
   const [conversations, total] = await Promise.all([
     Conversation.find(filter)
-      .sort({ lastMessageAt: -1 })
+      .sort({ priority: -1, lastMessageAt: -1 })
       .skip(skip)
       .limit(limit)
       .populate("contactId", "name phone tags")
@@ -92,8 +98,16 @@ export async function sendReply(tenantId: string, conversationId: string, text: 
 
   await message.save();
 
-  conversation.lastMessageAt = new Date();
+  const now = new Date();
+  conversation.lastMessageAt = now;
   conversation.lastMessagePreview = text.substring(0, 100);
+
+  if (!conversation.sla.firstResponseAt) {
+    conversation.sla.firstResponseAt = now;
+    conversation.sla.firstResponseTimeMs = now.getTime() - conversation.createdAt.getTime();
+  }
+  conversation.sla.lastAgentResponseAt = now;
+
   await conversation.save();
 
   return message;
@@ -116,5 +130,50 @@ export async function assignAgent(tenantId: string, conversationId: string, agen
     { new: true }
   );
   if (!conversation) throw new AppError("Conversation not found", 404);
+  return conversation;
+}
+
+export async function closeConversation(tenantId: string, conversationId: string) {
+  const now = new Date();
+  const conversation = await Conversation.findOne({ _id: conversationId, tenantId });
+  if (!conversation) throw new AppError("Conversation not found", 404);
+
+  conversation.status = "closed";
+  conversation.sla.resolvedAt = now;
+  conversation.sla.resolutionTimeMs = now.getTime() - conversation.createdAt.getTime();
+  await conversation.save();
+
+  return conversation;
+}
+
+export async function updateConversationPriority(
+  tenantId: string,
+  conversationId: string,
+  priority: ConversationPriority
+) {
+  const conversation = await Conversation.findOneAndUpdate(
+    { _id: conversationId, tenantId },
+    { priority },
+    { new: true }
+  );
+  if (!conversation) throw new AppError("Conversation not found", 404);
+  return conversation;
+}
+
+export async function transferConversation(
+  tenantId: string,
+  conversationId: string,
+  newAgentId: string,
+  note?: string
+) {
+  const conversation = await Conversation.findOne({ _id: conversationId, tenantId });
+  if (!conversation) throw new AppError("Conversation not found", 404);
+
+  conversation.assignedAgentId = newAgentId as unknown as mongoose.Types.ObjectId;
+  if (note) {
+    conversation.notes = `${conversation.notes}\n[Transfer] ${note}`.trim();
+  }
+  await conversation.save();
+
   return conversation;
 }

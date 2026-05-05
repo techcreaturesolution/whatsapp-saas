@@ -26,7 +26,12 @@ export async function tenantGuard(req: TenantRequest, res: Response, next: NextF
   }
 
   const tenant = await Tenant.findById(req.user.tenantId);
-  if (!tenant || tenant.status !== "active") {
+  if (!tenant) {
+    res.status(403).json({ error: "Tenant not found" });
+    return;
+  }
+
+  if (tenant.status !== "active" && tenant.status !== "pending") {
     res.status(403).json({ error: "Tenant is not active" });
     return;
   }

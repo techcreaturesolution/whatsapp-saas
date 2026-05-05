@@ -1,15 +1,18 @@
 import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from "bcryptjs";
 
+export type UserRole = "super_admin" | "tenant_admin" | "manager" | "agent";
+
 export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
-  role: "super_admin" | "tenant_admin" | "agent";
+  role: UserRole;
   tenantId: mongoose.Types.ObjectId | null;
   isVerified: boolean;
   otp: string | null;
   otpExpiresAt: Date | null;
+  lastLoginAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidate: string): Promise<boolean>;
@@ -22,13 +25,14 @@ const userSchema = new Schema<IUser>(
     name: { type: String, required: true, trim: true },
     role: {
       type: String,
-      enum: ["super_admin", "tenant_admin", "agent"],
+      enum: ["super_admin", "tenant_admin", "manager", "agent"],
       default: "tenant_admin",
     },
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", default: null },
     isVerified: { type: Boolean, default: false },
     otp: { type: String, default: null },
     otpExpiresAt: { type: Date, default: null },
+    lastLoginAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

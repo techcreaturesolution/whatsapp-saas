@@ -10,6 +10,8 @@ router.get("/tenants", adminController.listTenants);
 router.get("/tenants/:id", adminController.getTenantById);
 router.post("/tenants/:id/suspend", adminController.suspendTenant);
 router.post("/tenants/:id/activate", adminController.activateTenant);
+router.put("/tenants/:id/plan", adminController.updateTenantPlan);
+router.post("/tenants/:id/reset-usage", adminController.resetTenantUsage);
 router.delete("/tenants/:id", adminController.deleteTenant);
 
 export default router;

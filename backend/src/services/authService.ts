@@ -142,6 +142,43 @@ export async function addAgent(tenantId: string, data: { email: string; password
   return { user: sanitizeUser(agent) };
 }
 
+export async function addTeamMember(tenantId: string, data: {
+  email: string;
+  password: string;
+  name: string;
+  role: "manager" | "agent";
+}) {
+  const existingUser = await User.findOne({ email: data.email });
+  if (existingUser) {
+    throw new AppError("Email already registered", 409);
+  }
+
+  const member = new User({
+    email: data.email,
+    password: data.password,
+    name: data.name,
+    role: data.role,
+    tenantId,
+    isVerified: true,
+  });
+
+  await member.save();
+  return { user: sanitizeUser(member) };
+}
+
+export async function getTeamMembers(tenantId: string) {
+  const members = await User.find({ tenantId }).select("-password -otp -otpExpiresAt");
+  return { members };
+}
+
+export async function removeTeamMember(tenantId: string, userId: string) {
+  const user = await User.findOne({ _id: userId, tenantId });
+  if (!user) throw new AppError("User not found", 404);
+  if (user.role === "tenant_admin") throw new AppError("Cannot remove tenant admin", 400);
+  await User.findByIdAndDelete(userId);
+  return { message: "Team member removed" };
+}
+
 function sanitizeUser(user: IUser) {
   return {
     _id: user._id,

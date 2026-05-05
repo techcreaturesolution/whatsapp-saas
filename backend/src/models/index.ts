@@ -1,9 +1,18 @@
 export { User, IUser } from "./User";
+export type { UserRole } from "./User";
 export { Tenant, ITenant } from "./Tenant";
+export type { TenantPlan, TenantStatus, OnboardingStep } from "./Tenant";
 export { WhatsAppAccount, IWhatsAppAccount } from "./WhatsAppAccount";
 export { Contact, IContact } from "./Contact";
 export { Campaign, ICampaign, ICampaignStats } from "./Campaign";
 export { Message, IMessage } from "./Message";
 export { Conversation, IConversation } from "./Conversation";
+export type { ConversationPriority, ISLAMetrics } from "./Conversation";
 export { AutoReplyRule, IAutoReplyRule } from "./AutoReplyRule";
 export { Subscription, ISubscription, PLAN_CONFIG } from "./Subscription";
+export { Payment, IPayment } from "./Payment";
+export type { PaymentStatus } from "./Payment";
+export { Workflow, IWorkflow } from "./Workflow";
+export type { WorkflowStatus, TriggerType, ActionType, ConditionOperator, IWorkflowAction, IWorkflowTrigger, IWorkflowCondition } from "./Workflow";
+export { WorkflowLog, IWorkflowLog } from "./WorkflowLog";
+export type { WorkflowLogStatus } from "./WorkflowLog";
