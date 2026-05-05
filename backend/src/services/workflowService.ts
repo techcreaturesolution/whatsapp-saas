@@ -315,7 +315,23 @@ async function isUrlAllowed(url: string): Promise<boolean> {
         if (!isIpv4Public(addr)) return false;
       }
     } catch {
-      // DNS resolution failed or hostname is already an IP — allow if it passed prior checks
+      // No A records — continue to AAAA check
+    }
+
+    try {
+      const addresses6 = await dns.resolve6(hostname);
+      for (const addr of addresses6) {
+        const lower = addr.toLowerCase();
+        if (lower === "::1" || lower === "::") return false;
+        if (lower.startsWith("fd") || lower.startsWith("fc")) return false;
+        if (lower.startsWith("fe80")) return false;
+        if (lower.includes("::ffff:")) {
+          const mapped = lower.split("::ffff:")[1];
+          if (mapped && !isIpv4Public(mapped)) return false;
+        }
+      }
+    } catch {
+      // DNS resolution failed — allow if it passed prior checks
     }
 
     return true;
@@ -338,7 +354,7 @@ async function executeActionByType(
       const contactPhone = (config.to as string) || (triggerData.contactPhone as string);
       if (!waAccountId || !contactPhone) return { skipped: true, reason: "Missing account or phone" };
 
-      const account = await WhatsAppAccount.findById(waAccountId);
+      const account = await WhatsAppAccount.findOne({ _id: waAccountId, tenantId });
       if (!account) return { skipped: true, reason: "Account not found" };
 
       const text = config.message as string;
@@ -356,7 +372,7 @@ async function executeActionByType(
       const contactPhone = (config.to as string) || (triggerData.contactPhone as string);
       if (!waAccountId || !contactPhone) return { skipped: true, reason: "Missing account or phone" };
 
-      const account = await WhatsAppAccount.findById(waAccountId);
+      const account = await WhatsAppAccount.findOne({ _id: waAccountId, tenantId });
       if (!account) return { skipped: true, reason: "Account not found" };
 
       const result = await sendTemplateMessage({
