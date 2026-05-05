@@ -41,10 +41,15 @@ export async function selectPlan(tenantId: string, plan: TenantPlan) {
   tenant.plan = plan;
   tenant.messageQuota = planConfig.messageQuota;
 
+  const currentIdx = STEP_ORDER.indexOf(tenant.onboardingStep);
   if (plan === "free") {
-    tenant.onboardingStep = "payment_done";
+    if (currentIdx < STEP_ORDER.indexOf("payment_done")) {
+      tenant.onboardingStep = "payment_done";
+    }
   } else {
-    tenant.onboardingStep = "plan_selected";
+    if (currentIdx < STEP_ORDER.indexOf("plan_selected")) {
+      tenant.onboardingStep = "plan_selected";
+    }
   }
 
   await tenant.save();
@@ -89,7 +94,9 @@ export async function connectMeta(tenantId: string, data: {
     systemUserToken: encrypt(data.systemUserToken),
     webhookVerifyToken: data.webhookVerifyToken,
   };
-  tenant.onboardingStep = "meta_connected";
+  if (currentIdx < STEP_ORDER.indexOf("meta_connected")) {
+    tenant.onboardingStep = "meta_connected";
+  }
   await tenant.save();
 
   return tenant;
@@ -123,7 +130,9 @@ export async function verifyPhoneNumber(tenantId: string, data: {
 
   await account.save();
 
-  tenant.onboardingStep = "phone_verified";
+  if (currentIdx < STEP_ORDER.indexOf("phone_verified")) {
+    tenant.onboardingStep = "phone_verified";
+  }
   await tenant.save();
 
   return { tenant, account };

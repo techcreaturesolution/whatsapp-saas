@@ -275,11 +275,13 @@ function isSuspiciousRegex(pattern: string): boolean {
 function isIpv4Public(ip: string): boolean {
   const parts = ip.split(".").map(Number);
   if (parts.length !== 4 || parts.some(p => isNaN(p))) return true;
+  if (parts[0] === 0) return false;
   if (parts[0] === 10) return false;
   if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return false;
   if (parts[0] === 192 && parts[1] === 168) return false;
   if (parts[0] === 169 && parts[1] === 254) return false;
   if (parts[0] === 127) return false;
+  if (parts[0] >= 224) return false;
   return true;
 }
 
