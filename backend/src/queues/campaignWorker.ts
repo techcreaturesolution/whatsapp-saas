@@ -3,13 +3,15 @@ import { redisConnection } from "../config/redis";
 import { Message } from "../models/Message";
 import { Campaign } from "../models/Campaign";
 import { Tenant } from "../models/Tenant";
+import { WhatsAppAccount } from "../models/WhatsAppAccount";
 import { sendTemplateMessage } from "../services/whatsappApiService";
+import { getDecryptedToken } from "../utils/crypto";
 import { logger } from "../config/logger";
 
 interface SendMessageJob {
   messageId: string;
   phoneNumberId: string;
-  accessToken: string;
+  waAccountId: string;
   to: string;
   templateName: string;
   languageCode: string;
@@ -27,7 +29,7 @@ export function startCampaignWorker() {
       const {
         messageId,
         phoneNumberId,
-        accessToken,
+        waAccountId,
         to,
         templateName,
         languageCode,
@@ -48,9 +50,15 @@ export function startCampaignWorker() {
         await campaign.save();
       }
 
+      const account = await WhatsAppAccount.findById(waAccountId);
+      if (!account) {
+        logger.error(`WhatsApp account ${waAccountId} not found for message ${messageId}`);
+        return;
+      }
+
       const result = await sendTemplateMessage({
         phoneNumberId,
-        accessToken,
+        accessToken: getDecryptedToken(account),
         to,
         templateName,
         languageCode,

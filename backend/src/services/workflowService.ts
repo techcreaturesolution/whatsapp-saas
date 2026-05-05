@@ -364,8 +364,15 @@ async function executeActionByType(
       const updates = config.updates as Record<string, unknown>;
       if (!contactId || !updates) return { skipped: true, reason: "Missing contact or updates" };
 
-      await Contact.findByIdAndUpdate(contactId, { $set: updates });
-      return { updated: true, fields: Object.keys(updates) };
+      const ALLOWED_FIELDS = ["name", "email", "tags", "notes", "customFields"];
+      const safeUpdates: Record<string, unknown> = {};
+      for (const key of Object.keys(updates)) {
+        if (ALLOWED_FIELDS.includes(key)) safeUpdates[key] = updates[key];
+      }
+      if (Object.keys(safeUpdates).length === 0) return { skipped: true, reason: "No allowed fields to update" };
+
+      await Contact.findByIdAndUpdate(contactId, { $set: safeUpdates });
+      return { updated: true, fields: Object.keys(safeUpdates) };
     }
 
     case "call_api": {
