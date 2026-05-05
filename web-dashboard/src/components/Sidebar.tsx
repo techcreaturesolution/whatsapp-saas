@@ -11,6 +11,9 @@ import {
   Shield,
   Smartphone,
   LogOut,
+  GitBranch,
+  DollarSign,
+  UserPlus,
 } from "lucide-react";
 import { useAuth } from "../store/AuthContext";
 
@@ -19,15 +22,19 @@ const navItems = [
   { to: "/chat", icon: MessageSquare, label: "Chat Inbox" },
   { to: "/contacts", icon: Users, label: "Contacts" },
   { to: "/campaigns", icon: Megaphone, label: "Campaigns" },
+  { to: "/workflows", icon: GitBranch, label: "Workflows" },
   { to: "/auto-reply", icon: Bot, label: "Auto Reply" },
   { to: "/analytics", icon: BarChart3, label: "Analytics" },
+  { to: "/agent-performance", icon: UserPlus, label: "Agent Performance" },
   { to: "/whatsapp-accounts", icon: Smartphone, label: "WhatsApp Accounts" },
+  { to: "/team", icon: Users, label: "Team" },
   { to: "/subscription", icon: CreditCard, label: "Subscription" },
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
 const adminItems = [
   { to: "/admin", icon: Shield, label: "Admin Panel" },
+  { to: "/revenue", icon: DollarSign, label: "Revenue" },
 ];
 
 export default function Sidebar() {

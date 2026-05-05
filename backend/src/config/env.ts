@@ -24,4 +24,8 @@ export const env = {
   razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || "",
 
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
+
+  encryptionKey: process.env.ENCRYPTION_KEY || "",
+  slaFirstResponseMinutes: parseInt(process.env.SLA_FIRST_RESPONSE_MINUTES || "15", 10),
+  slaResolutionMinutes: parseInt(process.env.SLA_RESOLUTION_MINUTES || "1440", 10),
 };

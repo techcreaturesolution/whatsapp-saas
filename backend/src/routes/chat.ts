@@ -12,5 +12,8 @@ router.get("/conversations/:id/messages", chatController.getMessages);
 router.post("/conversations/:id/reply", chatController.sendReply);
 router.post("/conversations/:id/read", chatController.markRead);
 router.post("/conversations/:id/assign", chatController.assignAgent);
+router.post("/conversations/:id/close", chatController.closeConversation);
+router.put("/conversations/:id/priority", chatController.updatePriority);
+router.post("/conversations/:id/transfer", chatController.transferConversation);
 
 export default router;

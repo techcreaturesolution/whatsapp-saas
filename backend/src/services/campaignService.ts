@@ -100,7 +100,7 @@ export async function startCampaign(tenantId: string, campaignId: string) {
     await campaignQueue.add("send-message", {
       messageId: msg._id.toString(),
       phoneNumberId: account.phoneNumberId,
-      accessToken: account.accessToken,
+      waAccountId: account._id.toString(),
       to: contact.phone,
       templateName: campaign.templateName,
       languageCode: campaign.templateLanguage,

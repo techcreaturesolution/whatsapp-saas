@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { AuthRequest } from "../middleware/auth";
 import { TenantRequest } from "../middleware/tenancy";
 import * as authService from "../services/authService";
-import { registerSchema, loginSchema, verifyOtpSchema, addAgentSchema } from "../validators/auth";
+import { registerSchema, loginSchema, verifyOtpSchema, addAgentSchema, addTeamMemberSchema } from "../validators/auth";
 
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
@@ -48,6 +48,34 @@ export async function addAgent(req: TenantRequest, res: Response, next: NextFunc
     const data = addAgentSchema.parse(req.body);
     const result = await authService.addAgent(req.tenantId!, data);
     res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function addTeamMember(req: TenantRequest, res: Response, next: NextFunction) {
+  try {
+    const data = addTeamMemberSchema.parse(req.body);
+    const result = await authService.addTeamMember(req.tenantId!, data);
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getTeamMembers(req: TenantRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await authService.getTeamMembers(req.tenantId!);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function removeTeamMember(req: TenantRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await authService.removeTeamMember(req.tenantId!, req.params.id);
+    res.json(result);
   } catch (error) {
     next(error);
   }

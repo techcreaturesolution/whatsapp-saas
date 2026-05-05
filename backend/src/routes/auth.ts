@@ -17,4 +17,26 @@ router.post(
   authController.addAgent
 );
 
+router.post(
+  "/team-members",
+  authenticate,
+  authorize("tenant_admin", "super_admin"),
+  tenantGuard,
+  authController.addTeamMember
+);
+router.get(
+  "/team-members",
+  authenticate,
+  authorize("tenant_admin", "manager", "super_admin"),
+  tenantGuard,
+  authController.getTeamMembers
+);
+router.delete(
+  "/team-members/:id",
+  authenticate,
+  authorize("tenant_admin", "super_admin"),
+  tenantGuard,
+  authController.removeTeamMember
+);
+
 export default router;

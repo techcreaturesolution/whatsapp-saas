@@ -16,6 +16,10 @@ import analyticsRoutes from "./routes/analytics";
 import subscriptionRoutes from "./routes/subscription";
 import webhookRoutes from "./routes/webhook";
 import adminRoutes from "./routes/admin";
+import onboardingRoutes from "./routes/onboarding";
+import workflowRoutes from "./routes/workflows";
+import revenueRoutes from "./routes/revenue";
+import paymentWebhookRoutes from "./routes/paymentWebhook";
 
 const app = express();
 
@@ -31,12 +35,11 @@ const apiLimiter = rateLimit({
 });
 app.use("/api/", apiLimiter);
 
-app.use("/api/webhook", express.json({
-  limit: "10mb",
-  verify: (req, _res, buf) => {
-    (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
-  },
-}));
+const rawBodyCapture = (req: express.Request, _res: express.Response, buf: Buffer) => {
+  (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+};
+app.use("/api/webhook", express.json({ limit: "10mb", verify: rawBodyCapture }));
+app.use("/api/payment-webhook", express.json({ limit: "10mb", verify: rawBodyCapture }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -54,6 +57,10 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/subscription", subscriptionRoutes);
 app.use("/api/webhook", webhookRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/onboarding", onboardingRoutes);
+app.use("/api/workflows", workflowRoutes);
+app.use("/api/revenue", revenueRoutes);
+app.use("/api/payment-webhook", paymentWebhookRoutes);
 
 app.use(errorHandler);
 

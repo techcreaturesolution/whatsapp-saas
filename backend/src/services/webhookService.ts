@@ -5,6 +5,7 @@ import { Message } from "../models/Message";
 import { Campaign } from "../models/Campaign";
 
 import { processAutoReply } from "./autoReplyService";
+import { findAndExecuteWorkflows } from "./workflowService";
 import { logger } from "../config/logger";
 
 interface WebhookMessage {
@@ -90,6 +91,37 @@ export async function handleIncomingMessage(
       contactPhone: contact.phone,
       incomingText: waMessage.text.body,
     });
+
+    await findAndExecuteWorkflows(
+      tenantId,
+      "incoming_message",
+      {
+        incomingText: waMessage.text.body,
+        contactPhone: contact.phone,
+        contactName: contact.name,
+        messageType: waMessage.type,
+      },
+      {
+        contactId: contact._id.toString(),
+        conversationId: conversation._id.toString(),
+        waAccountId: account._id.toString(),
+      }
+    ).catch(err => logger.error("Workflow execution error:", err));
+
+    await findAndExecuteWorkflows(
+      tenantId,
+      "keyword",
+      {
+        incomingText: waMessage.text.body,
+        contactPhone: contact.phone,
+        contactName: contact.name,
+      },
+      {
+        contactId: contact._id.toString(),
+        conversationId: conversation._id.toString(),
+        waAccountId: account._id.toString(),
+      }
+    ).catch(err => logger.error("Keyword workflow error:", err));
   }
 
   return { message, conversation };

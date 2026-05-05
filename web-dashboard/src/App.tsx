@@ -13,12 +13,22 @@ import Analytics from "./pages/Analytics";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import Settings from "./pages/Settings";
 import AdminPanel from "./pages/AdminPanel";
+import Workflows from "./pages/Workflows";
+import RevenueDashboard from "./pages/RevenueDashboard";
+import Onboarding from "./pages/Onboarding";
+import TeamManagement from "./pages/TeamManagement";
+import AgentPerformance from "./pages/AgentPerformance";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/onboarding" element={
+        <ProtectedRoute><Layout /></ProtectedRoute>
+      }>
+        <Route index element={<Onboarding />} />
+      </Route>
 
       <Route
         path="/"
@@ -38,6 +48,10 @@ export default function App() {
         <Route path="subscription" element={<SubscriptionPage />} />
         <Route path="settings" element={<Settings />} />
         <Route path="admin" element={<AdminPanel />} />
+        <Route path="workflows" element={<Workflows />} />
+        <Route path="revenue" element={<RevenueDashboard />} />
+        <Route path="team" element={<TeamManagement />} />
+        <Route path="agent-performance" element={<AgentPerformance />} />
       </Route>
     </Routes>
   );

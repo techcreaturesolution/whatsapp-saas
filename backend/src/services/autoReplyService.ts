@@ -2,6 +2,7 @@ import { AutoReplyRule, IAutoReplyRule } from "../models/AutoReplyRule";
 import { AppError } from "../middleware/errorHandler";
 import { sendTextMessage, sendTemplateMessage } from "./whatsappApiService";
 import { WhatsAppAccount } from "../models/WhatsAppAccount";
+import { getDecryptedToken } from "../utils/crypto";
 import { logger } from "../config/logger";
 
 export async function createRule(tenantId: string, data: {
@@ -78,7 +79,7 @@ export async function processAutoReply(params: {
       if (rule.responseType === "template" && rule.templateName) {
         await sendTemplateMessage({
           phoneNumberId: account.phoneNumberId,
-          accessToken: account.accessToken,
+          accessToken: getDecryptedToken(account),
           to: params.contactPhone,
           templateName: rule.templateName,
           languageCode: "en",
@@ -86,7 +87,7 @@ export async function processAutoReply(params: {
       } else {
         await sendTextMessage({
           phoneNumberId: account.phoneNumberId,
-          accessToken: account.accessToken,
+          accessToken: getDecryptedToken(account),
           to: params.contactPhone,
           text: rule.responseContent,
         });
